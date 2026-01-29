@@ -1,4 +1,5 @@
-import { prisma } from "@/lib/db"
+import { prisma } from "@/lib/prisma";
+
 import { notFound } from "next/navigation"
 
 export default async function PastePage({

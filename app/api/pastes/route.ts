@@ -1,45 +1,12 @@
-import { prisma } from '../../../lib/db'
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
-export async function POST(req: Request) {
-  const body = await req.json()
-  const { content, ttl_seconds, max_views } = body
+export const runtime = "nodejs";
 
-  // Validation
-  if (!content || typeof content !== 'string' || content.trim() === '') {
-    return Response.json(
-      { error: 'Invalid content' },
-      { status: 400 }
-    )
-  }
+export async function GET(_req: NextRequest) {
+  const pastes = await prisma.paste.findMany({
+    orderBy: { createdAt: "desc" },
+  });
 
-  if (ttl_seconds !== undefined && ttl_seconds < 1) {
-    return Response.json(
-      { error: 'Invalid ttl_seconds' },
-      { status: 400 }
-    )
-  }
-
-  if (max_views !== undefined && max_views < 1) {
-    return Response.json(
-      { error: 'Invalid max_views' },
-      { status: 400 }
-    )
-  }
-
-  const expiresAt = ttl_seconds
-    ? new Date(Date.now() + ttl_seconds * 1000)
-    : null
-
-  const paste = await prisma.paste.create({
-    data: {
-      content,
-      expiresAt,
-      maxViews: max_views ?? null
-    }
-  })
-
-  return Response.json({
-    id: paste.id,
-    url: `${process.env.BASE_URL}/p/${paste.id}`
-  })
+  return NextResponse.json(pastes, { status: 200 });
 }

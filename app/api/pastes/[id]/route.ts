@@ -1,22 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+
+type RouteContext = {
+  params: Promise<{
+    id: string;
+  }>;
+};
 
 export async function GET(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  { params }: RouteContext
 ) {
-  const { id } = await context.params; // ← Add 'await' here
+  const { id } = await params;
 
-  const paste = await prisma.paste.findUnique({
-    where: { id },
-  });
-
-  if (!paste) {
-    return NextResponse.json(
-      { error: "Paste not found" },
-      { status: 404 }
-    );
-  }
-
-  return NextResponse.json(paste);
+  // Example response (replace with DB logic)
+  return NextResponse.json(
+    {
+      id,
+      content: "Sample paste content",
+      createdAt: new Date(),
+      expiresAt: null,
+      maxViews: null,
+      viewCount: 0,
+    },
+    { status: 200 }
+  );
 }
