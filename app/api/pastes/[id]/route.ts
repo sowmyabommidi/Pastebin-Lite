@@ -3,9 +3,9 @@ import { prisma } from "@/lib/db";
 
 export async function GET(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = context.params;
+  const { id } = await context.params; // ← Add 'await' here
 
   const paste = await prisma.paste.findUnique({
     where: { id },
