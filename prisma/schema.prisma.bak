@@ -1,8 +1,0 @@
-model Paste {
-  id        String   @id @default(cuid())
-  content   String
-  views     Int      @default(0)
-  maxViews  Int?
-  expiresAt DateTime?
-  createdAt DateTime @default(now())
-}
