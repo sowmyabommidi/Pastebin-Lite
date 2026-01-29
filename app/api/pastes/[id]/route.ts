@@ -1,42 +1,41 @@
-import { prisma } from "@/lib/db"
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
 
 export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
-  const id = params.id
+  const { id } = await context.params;
+
+  if (!id) {
+    return NextResponse.json(
+      { error: "Paste ID is required" },
+      { status: 400 }
+    );
+  }
 
   const paste = await prisma.paste.findUnique({
     where: { id }
-  })
+  });
 
   if (!paste) {
-    return Response.json({ error: "Not found" }, { status: 404 })
+    return NextResponse.json(
+      { error: "Paste not found" },
+      { status: 404 }
+    );
   }
 
-  // Time check
-  const now = new Date()
-  if (paste.expiresAt && paste.expiresAt < now) {
-    return Response.json({ error: "Expired" }, { status: 404 })
-  }
-
-  // View limit check
-  if (paste.maxViews && paste.viewCount >= paste.maxViews) {
-    return Response.json({ error: "Expired" }, { status: 404 })
-  }
-
-  // Increment view count
-  const updated = await prisma.paste.update({
+  // Optional: increment view count
+  await prisma.paste.update({
     where: { id },
     data: { viewCount: { increment: 1 } }
-  })
+  });
 
-  return Response.json({
-    content: updated.content,
-    remaining_views:
-      updated.maxViews === null
-        ? null
-        : updated.maxViews - updated.viewCount,
-    expires_at: updated.expiresAt
-  })
+  return NextResponse.json({
+    id: paste.id,
+    content: paste.content,
+    views: paste.viewCount + 1,
+    createdAt: paste.createdAt,
+    expiresAt: paste.expiresAt
+  });
 }
